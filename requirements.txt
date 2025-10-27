@@ -1,8 +1,8 @@
-streamlit
-pytesseract
-Pillow
-numpy
-mtranslate
-transformers
-torch
-time
+streamlit>=1.36.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+numpy>=1.25.0
+mtranslate>=1.8
+transformers>=4.40.0
+torch>=2.2.0
+
