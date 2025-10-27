@@ -1,7 +1,5 @@
 import streamlit as st
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
+import easyocr
 from PIL import Image
 import numpy as np
 import time
@@ -11,7 +9,7 @@ from transformers import pipeline
 # -------------------- Page Setup --------------------
 st.set_page_config(page_title="📷 OCR + Translator", page_icon="🌍", layout="centered")
 
-st.title("📷 OCR + Translation App")
+st.title("📷 OCR + Translation App (EasyOCR Version)")
 st.write("Extract or enter text, then translate it instantly using mtranslate or Hugging Face models!")
 
 # -------------------- Language Setup --------------------
@@ -38,20 +36,21 @@ languages = {
     "Ukrainian": "uk", "Urdu": "ur", "Uzbek": "uz", "Vietnamese": "vi", "Welsh": "cy",
     "Xhosa": "xh", "Yiddish": "yi", "Yoruba": "yo", "Zulu": "zu"
 }
-target_lang = st.selectbox("🌐 Choose Target Language", list(languages.keys()), index=1)
 
-# Choose translation engine
+target_lang = st.selectbox("🌐 Choose Target Language", list(languages.keys()), index=1)
 engine = st.radio("⚙️ Choose Translation Engine", ["mtranslate (Fast)", "Hugging Face (Accurate, Slow)"])
 
-# -------------------- Mode Selection --------------------
+# -------------------- EasyOCR Reader --------------------
+st.write("🔍 Initializing OCR engine...")
+reader = easyocr.Reader(['en', 'hi'], gpu=False)
+st.success("✅ EasyOCR is ready!")
+
+# -------------------- Input Mode --------------------
 mode = st.radio("🎯 Choose Input Mode", ["📸 Camera", "🖼️ Upload Image", "✍️ Type or Paste Text"])
-
-# Refresh time for camera mode
 refresh_time = st.slider("⏱️ Refresh every (seconds)", 2, 10, 4, help="Used only for camera mode.")
-
 start = st.toggle("▶️ Start Translation")
 
-# -------------------- Core Function --------------------
+# -------------------- Translation Function --------------------
 def translate_text(text, target_lang):
     """Translate text using chosen engine."""
     if not text.strip():
@@ -59,18 +58,23 @@ def translate_text(text, target_lang):
     if engine == "mtranslate (Fast)":
         return translate(text, languages[target_lang])
     else:
-        # Auto detect direction for Hindi ↔ English only
         if target_lang == "Hindi":
             translator = pipeline("translation", model="Helsinki-NLP/opus-mt-en-hi")
         elif target_lang == "English":
             translator = pipeline("translation", model="Helsinki-NLP/opus-mt-hi-en")
         else:
-            # Default fallback for other languages using mtranslate
             return translate(text, languages[target_lang])
         translated = translator(text)
         return translated[0]['translation_text']
 
-# -------------------- MAIN LOGIC --------------------
+# -------------------- OCR Function --------------------
+def extract_text(image):
+    """Extract text using EasyOCR."""
+    result = reader.readtext(np.array(image))
+    text = " ".join([res[1] for res in result])
+    return text.strip()
+
+# -------------------- MAIN APP LOGIC --------------------
 if start:
     placeholder_text = st.empty()
     placeholder_trans = st.empty()
@@ -81,9 +85,9 @@ if start:
             img_file = st.camera_input("📷 Show text to the camera", key=time.time())
             if img_file is not None:
                 image = Image.open(img_file)
-                text = pytesseract.image_to_string(np.array(image))
+                text = extract_text(image)
 
-                if text.strip():
+                if text:
                     placeholder_text.subheader("📝 Detected Text:")
                     placeholder_text.write(text[:400] + "..." if len(text) > 400 else text)
 
@@ -102,9 +106,9 @@ if start:
         img_file = st.file_uploader("📤 Upload an image", type=["png", "jpg", "jpeg"])
         if img_file:
             image = Image.open(img_file)
-            text = pytesseract.image_to_string(np.array(image))
+            text = extract_text(image)
             st.subheader("📝 Extracted Text:")
-            st.write(text if text.strip() else "⚠️ No text detected.")
+            st.write(text if text else "⚠️ No text detected.")
             if st.button("Translate Text"):
                 translated_text = translate_text(text, target_lang)
                 st.subheader(f"🌐 Translated to {target_lang}:")
@@ -116,5 +120,6 @@ if start:
             translated_text = translate_text(user_text, target_lang)
             st.subheader(f"🌐 Translated to {target_lang}:")
             st.write(translated_text)
+
 
 
