@@ -1,11 +1,13 @@
 streamlit
-pytesseract
-pillow
-numpy
+easyocr
 mtranslate
 transformers
 torch
-sentencepiece
+torchvision
+torchaudio
+pillow
+numpy
+
 
 
 
