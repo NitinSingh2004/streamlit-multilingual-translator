@@ -1,18 +1,14 @@
 import streamlit as st
 from mtranslate import translate
-from PIL import Image
-import easyocr
-import numpy as np
-import os
-from fpdf import FPDF
 
-# -------------------- Page Setup --------------------
-st.set_page_config(page_title="🌍 OCR + Multilingual Translator", page_icon="🌐", layout="centered")
+st.set_page_config(page_title="🌍 Multilingual Translator", page_icon="🌐", layout="centered")
 
-st.title("📷 OCR + 🌍 Multilingual Text Translator")
-st.write("Extract text from images or type manually, then translate it into 100+ languages!")
+st.title("🌍 Multilingual Text Translator")
+st.write("Translate any text into 100+ languages using `mtranslate`.")
 
-# -------------------- Language Dictionary --------------------
+# ---------------------------------------------------
+# Full language dictionary (Name → Code)
+# ---------------------------------------------------
 languages = {
     "Afrikaans": "af", "Albanian": "sq", "Amharic": "am", "Arabic": "ar", "Armenian": "hy",
     "Azerbaijani": "az", "Basque": "eu", "Belarusian": "be", "Bengali": "bn", "Bosnian": "bs",
@@ -37,64 +33,38 @@ languages = {
     "Xhosa": "xh", "Yiddish": "yi", "Yoruba": "yo", "Zulu": "zu"
 }
 
-# -------------------- Mode Selection --------------------
-mode = st.radio("📂 Choose Input Mode:", ["🖼️ Upload Image", "✍️ Type or Paste Text"])
+# ---------------------------------------------------
+# UI Inputs
+# ---------------------------------------------------
+text = st.text_area("📝 Enter text to translate:", placeholder="Type something here...")
 
-target_lang = st.selectbox("🌐 Choose Target Language:", list(languages.keys()), index=list(languages.keys()).index("Hindi"))
+target_lang = st.selectbox(
+    "🌐 Choose your target language:",
+    list(languages.keys()),
+    index=list(languages.keys()).index("Hindi")
+)
 
-# -------------------- EasyOCR Setup --------------------
-MODEL_DIR = os.path.join(os.getcwd(), "models")
-os.makedirs(MODEL_DIR, exist_ok=True)
-reader = easyocr.Reader(['en', 'hi'], model_storage_directory=MODEL_DIR, gpu=False)
-
-# -------------------- OCR or Text Input --------------------
-extracted_text = ""
-
-if mode == "🖼️ Upload Image":
-    img_file = st.file_uploader("📸 Upload an image", type=["png", "jpg", "jpeg"])
-    if img_file:
-        image = Image.open(img_file)
-        st.image(image, caption="Uploaded Image", use_container_width=True)
-        with st.spinner("🔍 Extracting text using OCR..."):
-            result = reader.readtext(np.array(image))
-            extracted_text = " ".join([res[1] for res in result])
-        st.subheader("📝 Extracted Text:")
-        st.write(extracted_text if extracted_text.strip() else "⚠️ No text detected.")
-
-else:
-    extracted_text = st.text_area("🧾 Enter your text below:")
-
-# -------------------- Translation --------------------
+# ---------------------------------------------------
+# Translation
+# ---------------------------------------------------
 if st.button("🚀 Translate"):
-    if extracted_text.strip():
+    if text.strip():
         code = languages[target_lang]
         try:
-            translated = translate(extracted_text, code)
-            st.success(f"✅ Translated to {target_lang}:")
+            translated = translate(text, code)
+            st.success(f"**Translated to {target_lang}:**")
             st.write(translated)
-
-            # PDF Export Option
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            pdf.multi_cell(0, 10, txt="Original Text:\n" + extracted_text)
-            pdf.ln(10)
-            pdf.multi_cell(0, 10, txt=f"Translated Text ({target_lang}):\n" + translated)
-            pdf_output = "translation_output.pdf"
-            pdf.output(pdf_output)
-
-            with open(pdf_output, "rb") as f:
-                st.download_button("📥 Download PDF", f, file_name="translation_result.pdf")
-
         except Exception as e:
             st.error("❌ Error during translation. Please try again.")
             st.exception(e)
     else:
-        st.warning("⚠️ Please enter or extract some text first!")
+        st.warning("⚠️ Please enter some text to translate.")
 
-# -------------------- Footer --------------------
+# ---------------------------------------------------
+# Footer
+# ---------------------------------------------------
 st.markdown("---")
-st.caption("💡 Built with ❤️ by Nitin Singh using Streamlit, EasyOCR, and mtranslate.")
+st.caption("💡 Built with ❤️ by Nitin Singh using Streamlit + mtranslate.")
 
 
 
