@@ -77,8 +77,6 @@ elif mode == "✍️ Type or Paste Text":
         st.subheader(f"🌐 Translated to {target_lang}:")
         st.write(translated_text)
 
-            st.subheader(f"🌐 Translated to {target_lang}:")
-            st.write(translated_text)
 
 
 
