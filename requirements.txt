@@ -3,7 +3,8 @@ mtranslate
 easyocr
 pillow
 numpy
-fpdf
+fpdf2
+
 torch
 torchvision
 torchaudio
