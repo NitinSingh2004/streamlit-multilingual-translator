@@ -3,12 +3,11 @@ easyocr
 Pillow
 numpy
 mtranslate
-transformers
-torch
 langdetect
-pyttsx3
 SpeechRecognition
-pyaudio
+pyttsx3
+fpdf
+
 
 
 
