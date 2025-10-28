@@ -1,13 +1,6 @@
 streamlit
 mtranslate
-easyocr
-pillow
-numpy
-fpdf2
 
-torch
-torchvision
-torchaudio
 
 
 
