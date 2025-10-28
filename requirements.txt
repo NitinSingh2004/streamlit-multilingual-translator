@@ -1,12 +1,5 @@
 streamlit
-easyocr
 mtranslate
-transformers
-torch
-torchvision
-torchaudio
-pillow
-numpy
 
 
 
